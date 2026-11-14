@@ -1,0 +1,33 @@
+name: Publish verified Mobile APK
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      FILE: UltimateERP-Mobile-1.0.20-build27.apk
+      APK_URL: https://expo.dev/artifacts/eas/EwbhWPccQCkB10u0HWRlaW4DP9YkXGJmy0PLnPpv7S8.apk
+      EXPECTED_SHA256: 2452c32dc56ba4ed8ea93348313be8c49c1a6337f97ddec3a2aa9b1c62b41098
+    steps:
+      - name: Download and verify the approved build
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 --max-time 300 "$APK_URL" --output "$FILE"
+          printf '%s  %s\n' "$EXPECTED_SHA256" "$FILE" | sha256sum --check --strict
+          test "$(stat --format=%s "$FILE")" = 142636314
+      - name: Publish without replacing previous assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          existing=$(gh api "repos/$GH_REPO/releases/tags/v2.0.0" --jq '.assets[] | select(.name == "UltimateERP-Mobile-1.0.20-build27.apk") | .digest')
+          if [ -n "$existing" ]; then
+            test "$existing" = "sha256:$EXPECTED_SHA256"
+          else
+            gh release upload v2.0.0 "$FILE"
+          fi
