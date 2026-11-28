@@ -10,9 +10,9 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
       GH_REPO: ${{ github.repository }}
-      FILE: UltimateERP-Mobile-1.0.20-build32-legacy.apk
-      APK_URL: https://expo.dev/artifacts/eas/hG6hmeKLAGFbObBHGc1xgRGSYLucE-z_YNQ6EaDFKf4.apk
-      EXPECTED_SHA256: 6705f0c31778b1824b51f6048a9517d56ae470abdad27d89272ef97c22223fef
+      FILE: UltimateERP-Mobile-1.0.20-build33.apk
+      APK_URL: https://expo.dev/artifacts/eas/dh6_uRiKaUkmxvm7pttpxFDxJ4wFFGq2o4d7IVhbVFo.apk
+      EXPECTED_SHA256: 1605ae1970bf8006196e3d59e5ace5eb888a2df9011489d60fd871b77f0c5a43
     steps:
       - name: Download and verify the approved build
         shell: bash
@@ -20,12 +20,12 @@ jobs:
           set -euo pipefail
           curl --fail --location --retry 3 --max-time 300 "$APK_URL" --output "$FILE"
           printf '%s  %s\n' "$EXPECTED_SHA256" "$FILE" | sha256sum --check --strict
-          test "$(stat --format=%s "$FILE")" = 142655830
+          test "$(stat --format=%s "$FILE")" = 142655834
       - name: Publish without replacing previous assets
         shell: bash
         run: |
           set -euo pipefail
-          existing=$(gh api "repos/$GH_REPO/releases/tags/v2.0.0" --jq '.assets[] | select(.name == "UltimateERP-Mobile-1.0.20-build32-legacy.apk") | .digest')
+          existing=$(gh api "repos/$GH_REPO/releases/tags/v2.0.0" --jq '.assets[] | select(.name == "UltimateERP-Mobile-1.0.20-build33.apk") | .digest')
           if [ -n "$existing" ]; then
             test "$existing" = "sha256:$EXPECTED_SHA256"
           else
